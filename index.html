@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>APEX — Luxury Automotive</title>
+  <style>
+    /* ─── RESET & BASE ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --black:   #080808;
+      --dark:    #111111;
+      --card:    #161616;
+      --border:  rgba(255,255,255,.07);
+      --white:   #f5f5f5;
+      --dim:     rgba(245,245,245,.55);
+      --gold:    #c9a84c;
+      --gold2:   #e8c97e;
+      --accent:  #4a90e2;
+      --radius:  14px;
+      --trans:   cubic-bezier(.22,1,.36,1);
+    }
+    html { scroll-behavior: auto; }
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    ::selection { background: var(--gold); color: var(--black); }
+
+    /* ─── SCROLLBAR ────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--black); }
+    ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 99px; }
+
+    /* ─── NAV ──────────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 22px 48px;
+      transition: background .4s var(--trans), backdrop-filter .4s, padding .4s;
+    }
+    nav.scrolled {
+      background: rgba(8,8,8,.85);
+      backdrop-filter: blur(18px) saturate(180%);
+      -webkit-backdrop-filter: blur(18px) saturate(180%);
+      padding: 14px 48px;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: .18em;
+      color: var(--white);
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--gold); }
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: .78rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--dim);
+      text-decoration: none;
+      transition: color .25s;
+    }
+    .nav-links a:hover { color: var(--white); }
+    .nav-cta {
+      font-size: .78rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      padding: 9px 22px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: background .25s, color .25s;
+    }
+    .nav-cta:hover { background: var(--gold); color: var(--black); }
+
+    /* ─── HERO SCROLL WRAPPER ──────────────────────────────────── */
+    #hero-scroll {
+      position: relative;
+      /* tall enough to give scroll-scrub range */
+      height: 500vh;
+    }
+
+    /* ─── STICKY HERO ──────────────────────────────────────────── */
+    #hero-sticky {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* floor reflection glow */
+    #hero-sticky::before {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 70%; height: 35%;
+      background: radial-gradient(ellipse at 50% 100%, rgba(201,168,76,.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* ─── VIDEO ────────────────────────────────────────────────── */
+    #car-video {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: center;
+      pointer-events: none;
+      filter: brightness(.92) contrast(1.04);
+    }
+
+    /* vignette */
+    .vignette {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 50% 50%, transparent 38%, rgba(8,8,8,.72) 100%),
+        linear-gradient(to bottom, rgba(8,8,8,.55) 0%, transparent 20%, transparent 75%, rgba(8,8,8,.9) 100%);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* ─── HERO CONTENT ─────────────────────────────────────────── */
+    .hero-content {
+      position: relative;
+      z-index: 3;
+      text-align: center;
+      padding: 0 24px;
+      pointer-events: none;
+      transition: opacity .3s, transform .3s;
+    }
+    .hero-eyebrow {
+      font-size: .72rem;
+      letter-spacing: .3em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 20px;
+      opacity: 0;
+      transform: translateY(18px);
+      animation: fadeUp .9s var(--trans) .3s forwards;
+    }
+    .hero-title {
+      font-size: clamp(3rem, 8vw, 7.5rem);
+      font-weight: 700;
+      line-height: .95;
+      letter-spacing: -.02em;
+      margin-bottom: 28px;
+      opacity: 0;
+      transform: translateY(22px);
+      animation: fadeUp .9s var(--trans) .5s forwards;
+    }
+    .hero-title em {
+      font-style: normal;
+      color: var(--gold2);
+      display: block;
+    }
+    .hero-sub {
+      font-size: clamp(.9rem, 1.5vw, 1.15rem);
+      color: var(--dim);
+      max-width: 480px;
+      margin: 0 auto 44px;
+      line-height: 1.65;
+      opacity: 0;
+      transform: translateY(18px);
+      animation: fadeUp .9s var(--trans) .7s forwards;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      pointer-events: all;
+      opacity: 0;
+      transform: translateY(18px);
+      animation: fadeUp .9s var(--trans) .9s forwards;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--gold);
+      color: var(--black);
+      font-size: .82rem;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: 15px 34px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: background .25s, transform .2s, box-shadow .25s;
+      box-shadow: 0 0 30px rgba(201,168,76,.25);
+    }
+    .btn-primary:hover {
+      background: var(--gold2);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 40px rgba(201,168,76,.4);
+    }
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255,255,255,.25);
+      color: var(--white);
+      font-size: .82rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: 15px 34px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: border-color .25s, background .25s, transform .2s;
+    }
+    .btn-ghost:hover {
+      border-color: var(--white);
+      background: rgba(255,255,255,.06);
+      transform: translateY(-2px);
+    }
+
+    /* ─── SCROLL INDICATOR ─────────────────────────────────────── */
+    .scroll-hint {
+      position: absolute;
+      bottom: 36px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      animation: fadeUp .9s var(--trans) 1.3s forwards;
+    }
+    .scroll-hint span {
+      font-size: .65rem;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .scroll-mouse {
+      width: 22px; height: 36px;
+      border: 1.5px solid rgba(255,255,255,.3);
+      border-radius: 11px;
+      position: relative;
+    }
+    .scroll-mouse::after {
+      content: '';
+      position: absolute;
+      top: 6px; left: 50%; transform: translateX(-50%);
+      width: 3px; height: 7px;
+      background: var(--gold);
+      border-radius: 2px;
+      animation: scrollDot 2s infinite;
+    }
+
+    /* ─── PROGRESS BAR ─────────────────────────────────────────── */
+    #progress-bar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      width: 0%;
+      background: linear-gradient(90deg, var(--gold), var(--gold2));
+      z-index: 200;
+      transition: width .05s linear;
+      box-shadow: 0 0 8px var(--gold);
+    }
+
+    /* ─── SECTION BASE ─────────────────────────────────────────── */
+    section {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 120px 48px;
+    }
+    .section-eyebrow {
+      font-size: .72rem;
+      letter-spacing: .28em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: clamp(2.2rem, 4.5vw, 3.8rem);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -.02em;
+      margin-bottom: 20px;
+    }
+    .section-sub {
+      font-size: 1.05rem;
+      color: var(--dim);
+      max-width: 560px;
+      line-height: 1.7;
+    }
+
+    /* ─── MODELS GRID ──────────────────────────────────────────── */
+    #models { padding-top: 0; }
+    .models-header {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 100px 48px 56px;
+    }
+    .models-grid {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 48px 120px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    /* ─── MODEL CARD ───────────────────────────────────────────── */
+    .model-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform .4s var(--trans), box-shadow .4s var(--trans), border-color .3s;
+      position: relative;
+    }
+    .model-card:hover {
+      transform: translateY(-8px) scale(1.015);
+      box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(201,168,76,.18);
+      border-color: rgba(201,168,76,.22);
+    }
+    .model-card:nth-child(1) { grid-column: 1 / 3; }
+    .card-img {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      display: block;
+      transition: transform .6s var(--trans), filter .4s;
+    }
+    .model-card:hover .card-img {
+      transform: scale(1.04);
+      filter: brightness(1.08);
+    }
+    .card-body { padding: 28px 28px 32px; }
+    .card-tag {
+      display: inline-block;
+      font-size: .65rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      border: 1px solid rgba(201,168,76,.3);
+      padding: 4px 10px;
+      border-radius: 3px;
+      margin-bottom: 14px;
+    }
+    .card-name {
+      font-size: 1.65rem;
+      font-weight: 700;
+      letter-spacing: -.01em;
+      margin-bottom: 8px;
+    }
+    .card-desc {
+      font-size: .88rem;
+      color: var(--dim);
+      line-height: 1.65;
+      margin-bottom: 24px;
+    }
+    .card-specs {
+      display: flex;
+      gap: 28px;
+      margin-bottom: 28px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    .spec {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .spec-val {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--white);
+    }
+    .spec-lbl {
+      font-size: .65rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-price {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--gold2);
+    }
+    .card-price span { font-size: .72rem; color: var(--dim); font-weight: 400; }
+    .card-arrow {
+      width: 40px; height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--dim);
+      transition: background .25s, border-color .25s, color .25s, transform .25s;
+    }
+    .model-card:hover .card-arrow {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: var(--black);
+      transform: rotate(-45deg);
+    }
+
+    /* ─── FEATURES STRIP ───────────────────────────────────────── */
+    #features {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--dark);
+    }
+    .features-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 100px 48px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+    .feature-list {
+      display: grid;
+      gap: 36px;
+      margin-top: 44px;
+    }
+    .feature-item {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+    .feature-icon {
+      width: 44px; height: 44px;
+      flex-shrink: 0;
+      border: 1px solid rgba(201,168,76,.3);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(201,168,76,.06);
+    }
+    .feature-icon svg { width: 20px; height: 20px; stroke: var(--gold); }
+    .feature-text h4 { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
+    .feature-text p { font-size: .88rem; color: var(--dim); line-height: 1.65; }
+    .features-visual {
+      position: relative;
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .features-visual img {
+      width: 100%; border-radius: var(--radius); display: block;
+      filter: brightness(.88);
+      transition: filter .4s;
+    }
+    .features-visual:hover img { filter: brightness(1); }
+    .features-visual::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(201,168,76,.08), transparent 60%);
+      border-radius: var(--radius);
+      pointer-events: none;
+    }
+
+    /* ─── STATS BAR ────────────────────────────────────────────── */
+    .stats-bar {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 48px 120px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .stat-item {
+      background: var(--card);
+      padding: 44px 36px;
+      text-align: center;
+      transition: background .3s;
+    }
+    .stat-item:hover { background: #1c1c1c; }
+    .stat-num {
+      font-size: clamp(2.2rem, 3.5vw, 3.2rem);
+      font-weight: 700;
+      color: var(--gold2);
+      line-height: 1;
+      margin-bottom: 10px;
+      letter-spacing: -.02em;
+    }
+    .stat-lbl {
+      font-size: .75rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+
+    /* ─── TESTIMONIAL ──────────────────────────────────────────── */
+    #testimonial {
+      text-align: center;
+      padding: 140px 48px;
+    }
+    .quote-mark {
+      font-size: 5rem;
+      line-height: 0;
+      color: var(--gold);
+      font-family: Georgia, serif;
+      opacity: .4;
+      margin-bottom: 24px;
+      display: block;
+    }
+    blockquote {
+      font-size: clamp(1.3rem, 2.5vw, 2rem);
+      font-weight: 300;
+      line-height: 1.55;
+      max-width: 820px;
+      margin: 0 auto 32px;
+      color: var(--white);
+    }
+    .quote-author {
+      font-size: .78rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    /* ─── CTA SECTION ──────────────────────────────────────────── */
+    #cta-section {
+      padding: 0 48px 140px;
+    }
+    .cta-box {
+      max-width: 1280px;
+      margin: 0 auto;
+      background: linear-gradient(135deg, #1a1508, #0e0e0e);
+      border: 1px solid rgba(201,168,76,.2);
+      border-radius: 20px;
+      padding: 100px 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-box::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%; transform: translateX(-50%);
+      width: 60%; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    .cta-box::after {
+      content: '';
+      position: absolute;
+      bottom: -40px; left: 50%; transform: translateX(-50%);
+      width: 400px; height: 200px;
+      background: radial-gradient(ellipse, rgba(201,168,76,.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-box .section-title { margin-bottom: 16px; }
+    .cta-box .section-sub { margin: 0 auto 44px; text-align: center; }
+    .cta-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+    /* ─── FOOTER ───────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 56px 48px 40px;
+    }
+    .footer-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+    .footer-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 56px;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+    .footer-brand .nav-logo { font-size: 1.6rem; display: block; margin-bottom: 14px; }
+    .footer-brand p { font-size: .88rem; color: var(--dim); max-width: 280px; line-height: 1.65; }
+    .footer-cols {
+      display: flex;
+      gap: 64px;
+      flex-wrap: wrap;
+    }
+    .footer-col h5 {
+      font-size: .72rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 18px;
+    }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .footer-col a {
+      font-size: .88rem;
+      color: rgba(245,245,245,.5);
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .footer-col a:hover { color: var(--white); }
+    .footer-bottom {
+      border-top: 1px solid var(--border);
+      padding-top: 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .footer-bottom p { font-size: .78rem; color: rgba(245,245,245,.3); }
+
+    /* ─── ANIMATIONS ───────────────────────────────────────────── */
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scrollDot {
+      0%   { opacity: 1; transform: translateX(-50%) translateY(0); }
+      80%  { opacity: 0; transform: translateX(-50%) translateY(14px); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(14px); }
+    }
+
+    /* ─── REVEAL ON SCROLL ─────────────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(36px);
+      transition: opacity .8s var(--trans), transform .8s var(--trans);
+    }
+    .reveal.visible { opacity: 1; transform: none; }
+    .reveal-delay-1 { transition-delay: .1s; }
+    .reveal-delay-2 { transition-delay: .2s; }
+    .reveal-delay-3 { transition-delay: .32s; }
+    .reveal-delay-4 { transition-delay: .44s; }
+
+    /* ─── RESPONSIVE ───────────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .models-grid { grid-template-columns: 1fr 1fr; }
+      .model-card:nth-child(1) { grid-column: auto; }
+      .features-inner { grid-template-columns: 1fr; gap: 56px; }
+      .stats-bar { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 768px) {
+      nav { padding: 16px 24px; }
+      nav.scrolled { padding: 12px 24px; }
+      .nav-links { display: none; }
+      section, .models-header, .models-grid, .footer-inner, .stats-bar { padding-left: 24px; padding-right: 24px; }
+      .models-grid { grid-template-columns: 1fr; padding-bottom: 80px; }
+      .stats-bar { grid-template-columns: 1fr 1fr; }
+      .cta-box { padding: 64px 32px; }
+      footer { padding: 44px 24px 32px; }
+      .footer-top { flex-direction: column; }
+    }
+    @media (max-width: 480px) {
+      .stats-bar { grid-template-columns: 1fr; }
+      .footer-cols { gap: 36px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- progress bar -->
+  <div id="progress-bar"></div>
+
+  <!-- ── NAVIGATION ───────────────────────────── -->
+  <nav id="main-nav">
+    <a class="nav-logo" href="#">APE<span>X</span></a>
+    <ul class="nav-links">
+      <li><a href="#models">Models</a></li>
+      <li><a href="#features">Technology</a></li>
+      <li><a href="#cta-section">Contact</a></li>
+    </ul>
+    <a class="nav-cta" href="#models">View Inventory</a>
+  </nav>
+
+  <!-- ── HERO — SCROLL SCRUB ──────────────────── -->
+  <div id="hero-scroll">
+    <div id="hero-sticky">
+
+      <!-- car video -->
+      <video
+        id="car-video"
+        src="Flow_202603190242.mp4"
+        muted
+        playsinline
+        preload="auto"
+      ></video>
+
+      <!-- vignette overlay -->
+      <div class="vignette"></div>
+
+      <!-- content -->
+      <div class="hero-content" id="hero-content">
+        <p class="hero-eyebrow">2025 Collection</p>
+        <h1 class="hero-title">
+          Engineered<br>
+          <em>Beyond Limits</em>
+        </h1>
+        <p class="hero-sub">
+          Experience automotive excellence redefined — where precision engineering meets breathtaking design.
+        </p>
+        <div class="hero-actions">
+          <a href="#models" class="btn-primary">
+            View Inventory
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+          <a href="#features" class="btn-ghost">
+            Explore Technology
+          </a>
+        </div>
+      </div>
+
+      <!-- scroll hint -->
+      <div class="scroll-hint">
+        <div class="scroll-mouse"></div>
+        <span>Scroll to explore</span>
+      </div>
+
+    </div>
+  </div>
+  <!-- end hero-scroll -->
+
+  <!-- ── MODELS ────────────────────────────────── -->
+  <div id="models">
+    <div class="models-header reveal">
+      <p class="section-eyebrow">Our Fleet</p>
+      <h2 class="section-title">Choose Your Legend</h2>
+      <p class="section-sub">Each model is a statement — hand-selected for performance, presence, and uncompromising quality.</p>
+    </div>
+
+    <div class="models-grid">
+
+      <!-- Card 1 — featured -->
+      <div class="model-card reveal reveal-delay-1">
+        <div style="overflow:hidden;">
+          <img class="card-img" src="mercedes-benz-because-it-is-mercedes-benz-manufaktur-personalisation-2176x1224-03-2025.jpg" alt="Signature Series" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <span class="card-tag">Signature Series</span>
+          <h3 class="card-name">The Pinnacle Edition</h3>
+          <p class="card-desc">Hand-crafted perfection with bespoke interior, handstitched leather, and a twin-turbocharged V12 that rewrites the definition of power.</p>
+          <div class="card-specs">
+            <div class="spec"><span class="spec-val">4.1s</span><span class="spec-lbl">0–100 km/h</span></div>
+            <div class="spec"><span class="spec-val">612</span><span class="spec-lbl">Horsepower</span></div>
+            <div class="spec"><span class="spec-val">320</span><span class="spec-lbl">km/h Top</span></div>
+          </div>
+          <div class="card-footer">
+            <div class="card-price">€ 284,900 <span>from</span></div>
+            <div class="card-arrow">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="model-card reveal reveal-delay-2">
+        <div style="overflow:hidden;">
+          <img class="card-img" src="og-image-one-web-evo.jpg.webp" alt="GT Sport" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <span class="card-tag">GT Sport</span>
+          <h3 class="card-name">Apex GT-R</h3>
+          <p class="card-desc">Carbon-fibre aero package, adaptive magnetic suspension, and a naturally aspirated flat-six that sings at 9,000 rpm.</p>
+          <div class="card-specs">
+            <div class="spec"><span class="spec-val">3.3s</span><span class="spec-lbl">0–100 km/h</span></div>
+            <div class="spec"><span class="spec-val">530</span><span class="spec-lbl">Horsepower</span></div>
+            <div class="spec"><span class="spec-val">305</span><span class="spec-lbl">km/h Top</span></div>
+          </div>
+          <div class="card-footer">
+            <div class="card-price">€ 198,500 <span>from</span></div>
+            <div class="card-arrow">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="model-card reveal reveal-delay-3">
+        <div style="overflow:hidden;">
+          <img class="card-img" src="screenshot-8cf014f4-0933-4670-83ab-51a0b3d45b68.png" alt="Electric Avant-Garde" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <span class="card-tag">Electric</span>
+          <h3 class="card-name">Voltex One</h3>
+          <p class="card-desc">850 km real-world range, 1,100 Nm instant torque, and a bespoke 22-speaker spatial audio system — the future, now.</p>
+          <div class="card-specs">
+            <div class="spec"><span class="spec-val">2.9s</span><span class="spec-lbl">0–100 km/h</span></div>
+            <div class="spec"><span class="spec-val">750</span><span class="spec-lbl">HP equiv.</span></div>
+            <div class="spec"><span class="spec-val">850</span><span class="spec-lbl">km Range</span></div>
+          </div>
+          <div class="card-footer">
+            <div class="card-price">€ 165,000 <span>from</span></div>
+            <div class="card-arrow">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /models-grid -->
+
+    <!-- stats -->
+    <div class="stats-bar reveal">
+      <div class="stat-item">
+        <div class="stat-num">47+</div>
+        <div class="stat-lbl">Years Heritage</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">320</div>
+        <div class="stat-lbl">Models Delivered</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">98%</div>
+        <div class="stat-lbl">Client Satisfaction</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">24/7</div>
+        <div class="stat-lbl">Concierge Service</div>
+      </div>
+    </div>
+
+  </div><!-- /models -->
+
+  <!-- ── FEATURES ──────────────────────────────── -->
+  <div id="features">
+    <div class="features-inner">
+
+      <div>
+        <p class="section-eyebrow reveal">Engineered Advantage</p>
+        <h2 class="section-title reveal reveal-delay-1">Technology<br>Without<br>Compromise</h2>
+        <p class="section-sub reveal reveal-delay-2">Every system, every surface, every sensation — crafted to perfection through decades of motorsport intelligence.</p>
+        <div class="feature-list">
+
+          <div class="feature-item reveal reveal-delay-2">
+            <div class="feature-icon">
+              <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+            </div>
+            <div class="feature-text">
+              <h4>Adaptive Power Management</h4>
+              <p>Predictive AI distributes torque across all four wheels 1,000 times per second, reading road surface and driver intent simultaneously.</p>
+            </div>
+          </div>
+
+          <div class="feature-item reveal reveal-delay-3">
+            <div class="feature-icon">
+              <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm14.024-.983a1.125 1.125 0 010 1.966l-5.603 3.113A1.125 1.125 0 019 15.113V8.887c0-.857.921-1.4 1.671-.983l5.603 3.113z"/></svg>
+            </div>
+            <div class="feature-text">
+              <h4>Spatial Sound Architecture</h4>
+              <p>34-channel bespoke audio tuned by master acousticians — an immersive concert hall at 320 km/h.</p>
+            </div>
+          </div>
+
+          <div class="feature-item reveal reveal-delay-4">
+            <div class="feature-icon">
+              <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178zM15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </div>
+            <div class="feature-text">
+              <h4>Augmented Reality HUD</h4>
+              <p>Full-windscreen AR navigation overlays navigation, performance data, and hazard alerts directly onto the road ahead.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="features-visual reveal reveal-delay-2">
+        <img src="mercedes-benz-because-it-is-mercedes-benz-manufaktur-personalisation-2176x1224-03-2025.jpg" alt="Interior detail" />
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── TESTIMONIAL ───────────────────────────── -->
+  <section id="testimonial">
+    <span class="quote-mark reveal">"</span>
+    <blockquote class="reveal reveal-delay-1">
+      Driving an APEX vehicle is not merely an act of transportation — it is the closest a human being can come to flying while still touching the ground.
+    </blockquote>
+    <p class="quote-author reveal reveal-delay-2">— James Hartwell, Robb Report</p>
+  </section>
+
+  <!-- ── CTA ───────────────────────────────────── -->
+  <div id="cta-section">
+    <div class="cta-box reveal">
+      <p class="section-eyebrow">Private Showroom</p>
+      <h2 class="section-title">Ready to Drive<br>the Extraordinary?</h2>
+      <p class="section-sub">Our concierge team will arrange a private test drive, tailor a bespoke configuration, and handle every detail — at your convenience.</p>
+      <div class="cta-actions">
+        <a href="#" class="btn-primary">
+          Book a Test Drive
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a href="#" class="btn-ghost">Call Concierge</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── FOOTER ────────────────────────────────── -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <a class="nav-logo" href="#">APE<span>X</span></a>
+          <p>Luxury automotive, curated for the exceptional. Est. 1978.</p>
+        </div>
+        <div class="footer-cols">
+          <div class="footer-col">
+            <h5>Collection</h5>
+            <ul>
+              <li><a href="#">Signature Series</a></li>
+              <li><a href="#">GT Sport</a></li>
+              <li><a href="#">Electric Range</a></li>
+              <li><a href="#">Limited Editions</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h5>Services</h5>
+            <ul>
+              <li><a href="#">Private Test Drive</a></li>
+              <li><a href="#">Bespoke Config</a></li>
+              <li><a href="#">Concierge</a></li>
+              <li><a href="#">After-Sales</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h5>Company</h5>
+            <ul>
+              <li><a href="#">About APEX</a></li>
+              <li><a href="#">Careers</a></li>
+              <li><a href="#">Press</a></li>
+              <li><a href="#">Contact</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2025 APEX Automotive. All rights reserved.</p>
+        <p>Privacy Policy · Terms of Use · Cookie Settings</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ─────────────────────────── JAVASCRIPT ─────────────────────────── -->
+  <script>
+  (() => {
+    'use strict';
+
+    /* ── 1. SCROLL-SCRUB VIDEO ───────────────────────────────────── */
+    const video       = document.getElementById('car-video');
+    const heroScroll  = document.getElementById('hero-scroll');
+    const heroContent = document.getElementById('hero-content');
+    const progressBar = document.getElementById('progress-bar');
+
+    let videoDuration = 0;
+
+    // Load metadata to get duration
+    video.addEventListener('loadedmetadata', () => {
+      videoDuration = video.duration;
+    });
+
+    // Also try setting currentTime=0 so browser decodes first frame
+    video.currentTime = 0;
+
+    function scrubVideo() {
+      if (!videoDuration) return;
+
+      const scrollTop    = window.scrollY;
+      const heroH        = heroScroll.offsetHeight;
+      const viewH        = window.innerHeight;
+      // scrub range = heroH - viewH  (after that, user has scrolled past sticky)
+      const scrubRange   = heroH - viewH;
+      const progress     = Math.min(Math.max(scrollTop / scrubRange, 0), 1);
+
+      // Set video time
+      const targetTime   = progress * videoDuration;
+      if (Math.abs(video.currentTime - targetTime) > 0.04) {
+        video.currentTime = targetTime;
+      }
+
+      // Fade hero text out as user scrolls
+      const fadeProgress = Math.min(progress * 3, 1);   // fades over first 33% of scrub
+      heroContent.style.opacity  = 1 - fadeProgress;
+      heroContent.style.transform = `translateY(${fadeProgress * -30}px)`;
+    }
+
+    /* ── 2. GLOBAL SCROLL PROGRESS BAR ──────────────────────────── */
+    function updateProgressBar() {
+      const totalH   = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = totalH > 0 ? (window.scrollY / totalH) * 100 : 0;
+      progressBar.style.width = progress + '%';
+    }
+
+    /* ── 3. NAV SCROLL STATE ─────────────────────────────────────── */
+    const nav = document.getElementById('main-nav');
+    function updateNav() {
+      nav.classList.toggle('scrolled', window.scrollY > 60);
+    }
+
+    /* ── 4. REVEAL ON SCROLL ─────────────────────────────────────── */
+    const revealEls = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            e.target.classList.add('visible');
+            revealObserver.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.12 }
+    );
+    revealEls.forEach(el => revealObserver.observe(el));
+
+    /* ── 5. SMOOTH ANCHOR SCROLL ─────────────────────────────────── */
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', e => {
+        const target = document.querySelector(anchor.getAttribute('href'));
+        if (!target) return;
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    /* ── 6. SCROLL LISTENER (passive) ───────────────────────────── */
+    window.addEventListener('scroll', () => {
+      scrubVideo();
+      updateProgressBar();
+      updateNav();
+    }, { passive: true });
+
+    /* Initial calls */
+    scrubVideo();
+    updateProgressBar();
+    updateNav();
+
+    /* ── 7. PARALLAX HOVER ON MODEL CARDS ───────────────────────── */
+    document.querySelectorAll('.model-card').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        const cx   = (e.clientX - rect.left) / rect.width  - 0.5;
+        const cy   = (e.clientY - rect.top)  / rect.height - 0.5;
+        card.style.transform = `
+          translateY(-8px) scale(1.015)
+          rotateY(${cx * 6}deg)
+          rotateX(${-cy * 4}deg)
+        `;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = '';
+      });
+    });
+
+    /* ── 8. COUNTER ANIMATION ON STATS ──────────────────────────── */
+    function animateCount(el) {
+      const raw    = el.textContent.trim();
+      const num    = parseFloat(raw.replace(/[^0-9.]/g, ''));
+      const suffix = raw.replace(/[0-9.]/g, '');
+      if (isNaN(num)) return;
+      const start  = performance.now();
+      const dur    = 1600;
+      function step(now) {
+        const t   = Math.min((now - start) / dur, 1);
+        const ease = 1 - Math.pow(1 - t, 3);
+        el.textContent = (Math.round(num * ease * 10) / 10) + suffix;
+        if (t < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    const statNums = document.querySelectorAll('.stat-num');
+    const statsObserver = new IntersectionObserver(
+      entries => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            animateCount(e.target);
+            statsObserver.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+    statNums.forEach(n => statsObserver.observe(n));
+
+  })();
+  </script>
+</body>
+</html>
